@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Vidgo.AI — AI Reel Generator</title>
+  <meta name="description"
+    content="Create stunning AI-powered video reels from images with narration, transitions, and Ken Burns effects." />
+  <link rel="icon"
+    href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+
+<body>
+  <div class="app-container">
+
+    <!-- ── Hero ─────────────────────────────────────────── -->
+    <header class="hero">
+      <h1 class="hero-logo">
+        <span class="logo-icon">🎬</span> Vidgo.AI
+      </h1>
+      <p class="hero-tagline">Transform your photos into stunning AI-narrated video reels in seconds</p>
+    </header>
+
+    <!-- ── Upload Card ──────────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">🖼️</span> Upload Images</h2>
+      <div class="upload-zone" id="upload-zone">
+        <span class="upload-icon">📤</span>
+        <p class="upload-text"><strong>Drop images here</strong> or click to browse</p>
+        <p class="upload-hint">PNG, JPG, WebP, BMP, GIF — up to 20 images · Drag to reorder</p>
+        <input type="file" id="file-input" accept=".png,.jpg,.jpeg,.webp,.bmp,.gif" multiple />
+      </div>
+      <div class="preview-grid" id="preview-grid"></div>
+      <div class="preview-footer">
+        <p class="image-count" id="image-count"></p>
+        <button class="clear-all-btn" id="clear-all-btn">🗑️ Clear All</button>
+      </div>
+    </section>
+
+    <!-- ── Script & Settings Card ───────────────────────── -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">✍️</span> Narration & Settings</h2>
+
+      <div class="form-group">
+        <label for="script-input">Narration Script</label>
+        <textarea id="script-input"
+          placeholder="Write the narration for your reel... The AI will read this text over your images."></textarea>
+        <div class="script-footer">
+          <p class="char-count" id="char-count">0 / 5000</p>
+        </div>
+      </div>
+
+      <!-- AI Script Generation -->
+      <div class="ai-script-row">
+        <button class="btn-ai-generate" id="ai-generate-btn" type="button">
+          <span class="btn-ai-icon">✨</span>
+          <span id="ai-btn-text">Generate Script with AI</span>
+          <div class="spinner-sm" id="ai-spinner" style="display:none"></div>
+        </button>
+        <select id="tone-select" class="tone-select">
+          <option value="professional">Professional</option>
+          <option value="casual">Casual</option>
+          <option value="funny">Funny</option>
+          <option value="dramatic">Dramatic</option>
+          <option value="inspirational">Inspirational</option>
+        </select>
+      </div>
+
+      <!-- Voice Selection -->
+      <div class="form-group">
+        <label for="voice-select">Voice</label>
+        <div class="voice-row">
+          <select id="voice-select">
+            <option value="">Loading voices...</option>
+          </select>
+          <button class="btn-voice-preview" id="voice-preview-btn" type="button" title="Preview voice">
+            <span id="preview-icon">🔊</span>
+            <div class="spinner-sm" id="preview-spinner" style="display:none"></div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Speech Speed -->
+      <div class="form-group">
+        <label>Speech Speed</label>
+        <div class="speed-toggle" id="speed-toggle">
+          <button class="speed-btn active" data-speed="normal">🏃 Normal</button>
+          <button class="speed-btn" data-speed="slow">🐢 Slow</button>
+        </div>
+      </div>
+
+      <button class="api-key-toggle" id="api-key-toggle">
+        <span class="chevron">▼</span> API Keys (optional)
+      </button>
+      <div class="api-key-section" id="api-key-section">
+        <div class="form-group">
+          <label for="api-key-input">ElevenLabs API Key</label>
+          <input type="password" id="api-key-input" placeholder="For premium voices" />
+        </div>
+        <div class="form-group">
+          <label for="gemini-key-input">Gemini API Key</label>
+          <input type="password" id="gemini-key-input" placeholder="For AI script generation" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Transitions Card ────────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">🎞️</span> Transitions</h2>
+      <div class="transition-grid" id="transition-grid">
+        <!-- Populated via JS -->
+      </div>
+
+      <div class="form-group" style="margin-top: 1.25rem;">
+        <label for="transition-duration-slider">Transition Duration: <span
+            id="transition-duration-value">0.5s</span></label>
+        <input type="range" id="transition-duration-slider" min="0.3" max="1.5" step="0.1" value="0.5" class="slider" />
+      </div>
+    </section>
+
+    <!-- ── Video Customization Card ─────────────────────── -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">🎛️</span> Video Customization</h2>
+
+      <!-- Aspect Ratio -->
+      <div class="form-group">
+        <label>Aspect Ratio</label>
+        <div class="ratio-toggle" id="ratio-toggle">
+          <button class="ratio-btn active" data-ratio="9:16">
+            <span class="ratio-icon">📱</span>
+            <span class="ratio-label">9:16</span>
+            <span class="ratio-sub">Reel / Story</span>
+          </button>
+          <button class="ratio-btn" data-ratio="16:9">
+            <span class="ratio-icon">🖥️</span>
+            <span class="ratio-label">16:9</span>
+            <span class="ratio-sub">Landscape</span>
+          </button>
+          <button class="ratio-btn" data-ratio="1:1">
+            <span class="ratio-icon">⬜</span>
+            <span class="ratio-label">1:1</span>
+            <span class="ratio-sub">Square</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Duration per image -->
+      <div class="form-group">
+        <label for="duration-slider">Duration per Image: <span id="duration-value">Auto</span></label>
+        <input type="range" id="duration-slider" min="0" max="10" step="0.5" value="0" class="slider" />
+        <p class="slider-hint">Set to 0 for automatic (matches narration length)</p>
+      </div>
+
+      <!-- Title Overlay -->
+      <div class="form-row">
+        <div class="form-group">
+          <label for="title-input">Title Overlay (optional)</label>
+          <input type="text" id="title-input" placeholder="Enter a title for your reel..." maxlength="80" />
+        </div>
+        <div class="form-group">
+          <label for="title-position">Title Position</label>
+          <select id="title-position">
+            <option value="top">Top</option>
+            <option value="center">Center</option>
+            <option value="bottom">Bottom</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── Background Music Card ────────────────────────── -->
+    <section class="card">
+      <h2 class="card-title"><span class="icon">🎵</span> Background Music</h2>
+      <div class="music-grid" id="music-grid">
+        <div class="music-item selected" data-music="">
+          <span class="music-icon">🔇</span>
+          <span class="music-name">No Music</span>
+        </div>
+        <!-- Populated via JS -->
+      </div>
+      <div class="form-group music-volume-group" id="music-volume-group" style="display:none">
+        <label for="music-volume">Music Volume: <span id="volume-value">15%</span></label>
+        <input type="range" id="music-volume" min="5" max="50" step="1" value="15" class="slider" />
+      </div>
+    </section>
+
+    <!-- ── Generate Button ──────────────────────────────── -->
+    <button class="btn-generate" id="generate-btn">
+      <span class="btn-icon" id="btn-icon">🚀</span>
+      <div class="spinner" id="btn-spinner" style="display:none"></div>
+      <span id="btn-text">Generate Reel</span>
+      <kbd class="shortcut-hint">Ctrl+Enter</kbd>
+    </button>
+
+    <!-- ── Progress Section ─────────────────────────────── -->
+    <div id="progress-section" style="display:none">
+      <div class="card progress-card">
+        <div class="progress-header">
+          <span class="progress-status" id="progress-status">Processing...</span>
+          <span class="progress-percent" id="progress-percent">0%</span>
+        </div>
+        <div class="progress-bar-track">
+          <div class="progress-bar-fill" id="progress-bar-fill" style="width: 0%"></div>
+        </div>
+        <p class="progress-message" id="progress-message">Starting...</p>
+      </div>
+    </div>
+
+    <!-- ── Result Section ───────────────────────────────── -->
+    <div id="result-section"></div>
+
+    <!-- ── Footer ───────────────────────────────────────── -->
+    <footer class="footer">
+      <p>Powered by <strong>Vidgo.AI</strong> · FFmpeg · ElevenLabs / Google TTS · Gemini AI</p>
+    </footer>
+
+  </div>
+
+  <!-- Hidden audio for voice preview -->
+  <audio id="preview-audio" style="display:none"></audio>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+
+</html>
